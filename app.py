@@ -5,13 +5,15 @@ from config import create_api
 import tweepy
 from hashtags import get_random_hashtags
 from datetime import datetime, timedelta
+import schedule
+import threading
 
 api = create_api()
 
 HIGHLIGHT = 0
 TITLE = 1
 AUTHOR = 2
-htags = get_random_hashtags()
+
 
 def tweet_now(msg):
     try:
@@ -22,6 +24,7 @@ def tweet_now(msg):
 
 def generate_tweet():
     row = sheets.get_random_highlight()
+    htags = get_random_hashtags()
     hl = row[HIGHLIGHT]
     attrib = f'\n- from {row[TITLE]} by {row[AUTHOR]}\n'
     tweet = ''
@@ -63,12 +66,39 @@ def like_tweet(tweet):
         print("Error on like\n", e)
 
 def get_user_friends(screen_name):
-    friends = api.friends(screen_name)
+    friends = tweepy.Cursor(api.friends, screen_name).items(300)
     return [friend.screen_name for friend in friends]
 
 def get_user_followers(screen_name):
-    followers = api.followers(screen_name)
+    followers = tweepy.Cursor(api.followers, screen_name).items(300)
     return [follower.screen_name for follower in followers]
+
+def unfollow_non_followers():
+    userid = api.me().id
+    followers = get_user_followers(userid)
+    friends = get_user_friends(userid)
+    # with open('friends.txt', 'w') as f:
+    #     f.write(str(friends))
+    #     f.close()
+    # with open('followers.txt', 'w') as f:
+    #     f.write(str(followers))
+    #     f.close()
+
+    non_followers = [f for f in friends if f not in followers]
+    # with open('non_followers.txt', 'w') as f:
+    #     f.write(str(non_followers))
+    #     f.close()
+    print(f'non follower len ---- {len(non_followers)}')
+
+    for nf in non_followers:
+        try:
+            print(f'unfollowing this dush {nf}')
+            api.destroy_friendship(nf)
+            time.sleep(2)
+        except Exception as e:
+            print(f'could not unfollow dush {nf}')
+            print(e)
+
 
 def get_tweets_by_hashtags(word):
     date = datetime.now() - timedelta(days=1)
@@ -93,41 +123,51 @@ def follow_followers():
 def choose_word(hashlist):
     return choice(hashlist).strip('#')
 
-def start_bot():
-    generate_tweet()
-    time.sleep(3)
+
+def like_tweets():
+    htags = get_random_hashtags()
     tweets = get_tweets_by_hashtags(choose_word(htags))
-    print(len(tweets))
-    follow_followers()
-    time.sleep(15 * 60)
     count = 0
-    potential_follows = []
+    # potential_follows = []
     for tweet in tweets:
         try:
             like_tweet(tweet)
-            potential_follows.append(tweet.user.screen_name)
+            # potential_follows.append(tweet.user.screen_name)
             count += 1
         except Exception as e:
             print('exeption occrod while iterating..', e)
-    count = 0
 
-    for screen_name in potential_follows:
+def follow_tweeters():
+    htags = get_random_hashtags()
+    tweets = get_tweets_by_hashtags(choose_word(htags))
+    count = 0
+    for tweet in tweets:
         try:
-            follow_user(screen_name)
+            follow_user(tweet.user.screen_name)
             count += 1
-            if count > 25: 
-                break
-            potential_follows += get_user_friends(tweet.user.screen_name)
         except Exception as e:
             print('error while following', e)
 
+def run_threaded(job_fn):
+    job_thread = threading.Thread(target=job_fn)
+    job_thread.start()
 
-def tweet_after_intervals():
-    hour = 8
-    seconds = hour * 60 * 60
-    while True:
-        start_bot()
-        print(f'sleeping...for....{hour} hours....')
-        time.sleep(seconds)
+schedule.every(1).days.at("08:01").do(run_threaded, generate_tweet)
+schedule.every(1).days.at("23:01").do(run_threaded, generate_tweet)
+schedule.every(1).days.at("16:31").do(run_threaded, generate_tweet)
 
-tweet_after_intervals()
+schedule.every(1).days.at("09:11").do(run_threaded, like_tweets)
+schedule.every(1).days.at("00:11").do(run_threaded, like_tweets)
+schedule.every(1).days.at("17:11").do(run_threaded, like_tweets)
+
+
+schedule.every(12).hours.do(run_threaded, follow_followers)
+schedule.every(16).hours.do(run_threaded, follow_tweeters)
+
+
+schedule.every(2).days.at("06:01").do(run_threaded, unfollow_non_followers)
+
+while True:
+    schedule.run_pending()
+    time.sleep(1)
+    
