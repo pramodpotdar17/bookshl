@@ -9,8 +9,3 @@ and it will delete that row from excel and save it to new excel file.
 
 It fits my use case. Feel free to use tinker with it.
 
-Suggetions are allways welcome.
-
-This bot is tweeting on twitter with handle [@bookhighlightsX](https://twitter.com/bookhighlightsx)
-Follow it for nice highlights from greatest of books.
-
