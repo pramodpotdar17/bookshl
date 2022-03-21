@@ -1,5 +1,5 @@
 creds_copy.json
-secrets.py
+secrets_copy.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

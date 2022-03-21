@@ -1,1 +1,12 @@
-{"t": "this file is from google api for authentication of google sheet and drive."}
+{
+    "type": "service_account",
+    "project_id": "yourid",
+    "private_key_id": "yourkeyid",
+    "private_key": "yourkey",
+    "client_email": "genreated email",
+    "client_id": "1717171717",
+    "auth_uri": "",
+    "token_uri": "",
+    "auth_provider_x509_cert_url": "",
+    "client_x509_cert_url": ""
+}
