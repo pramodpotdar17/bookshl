@@ -1,4 +1,5 @@
 import sheets
+import readwrite_csv
 from random import randint, choice
 import time
 from config import create_api
@@ -32,13 +33,14 @@ def tweet_thread_now(msg, originaltweet):
 
 
 def generate_tweet():
-    row = sheets.get_random_highlight()
+    # row = sheets.get_random_highlight()
+    row = readwrite_csv.get_random_highlight()
     # htags = get_random_hashtags()
     hl = row[HIGHLIGHT]
     attrib = f'\n-- from {row[TITLE]} by {row[AUTHOR]}'
     tweet = ''
     navaltweet = ''
-    if 'naval' in attrib:
+    if 'naval' in attrib.lower():
         navaltweet = ' @naval'
 
     if len(hl) <= 280:
@@ -66,4 +68,4 @@ print(f'script started successfully at: {datetime.now()}')
 schedule.every(1).days.at("11:11").do(run_threaded, generate_tweet)
 while True:
     schedule.run_pending()
-    time.sleep(1)
+    time.sleep(60)
