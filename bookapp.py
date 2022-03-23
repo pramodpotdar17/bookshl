@@ -35,22 +35,25 @@ def generate_tweet():
     row = sheets.get_random_highlight()
     # htags = get_random_hashtags()
     hl = row[HIGHLIGHT]
-    attrib = f'\n-- from {row[TITLE]} by {row[AUTHOR]} '
+    attrib = f'\n-- from {row[TITLE]} by {row[AUTHOR]}'
     tweet = ''
+    navaltweet = ''
+    if 'naval' in attrib:
+        navaltweet = ' @naval'
 
     if len(hl) <= 280:
         if len(hl + attrib) <= 280:
-            tweet = hl + attrib
+            tweet = hl + attrib + navaltweet
             tweet_now(tweet[0:280])
         else:
             tweet = '1/2 '+hl
             originaltweet = tweet_now(tweet[0:280])
-            tweet2 = '2/2 ' + attrib
+            tweet2 = '2/2 ' + attrib + navaltweet
             tweet_thread_now(tweet2[0:280], originaltweet)
     else:
         hl1 = '1/2 ' + hl[0:275]
         originaltweet = tweet_now(hl1)
-        hl2 = '2/2 ' + hl[275:] + attrib
+        hl2 = '2/2 ' + hl[275:] + attrib + navaltweet
         tweet_thread_now(hl2[0:280], originaltweet)
 
 
